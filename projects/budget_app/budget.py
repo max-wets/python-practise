@@ -8,7 +8,7 @@ class Category:
         return 0 if len(self.ledger) == 0 else sum([x["amount"] for x in self.ledger])
 
     def check_funds(self, amount):
-        return True if amount >= self.get_balance() else False
+        return True if amount <= self.get_balance() else False
 
     def deposit(self, amount, description=''):
         self.ledger.append({"amount": amount, "description": description})
@@ -30,16 +30,20 @@ class Category:
 
     def __repr__(self) -> str:
         def format_ledger_item(item):
-            return f'{str(item["description"][:23]).ljust(23)} {str(item["amount"]).rjust(6)}'
+            float_nbr = f'{item["amount"]:.2f}'
+            return f'{str(item["description"][:23]).ljust(23)} {float_nbr.rjust(6)}'
 
         lines_list = [format_ledger_item(x) for x in self.ledger]
         lines_list.insert(0, str(self.name).center(30, '*'))
-        lines_list.append(f'Total: {self.get_balance()}')
+        lines_list.append(f'Total: {self.get_balance():.2f}')
+        print("lines list: ", lines_list)
 
         return '\n'.join(lines_list)
 
 def create_spend_chart(categories):
     tot_amount = sum([x.get_balance() for x in categories])
+    cat_len = len(categories)
+    width = cat_len * 3 + 1
 
     def round_up_to_nearest_10(num):
         return math.ceil(num / 10) * 10
@@ -48,4 +52,15 @@ def create_spend_chart(categories):
     print(cat_list[0])
 
     bars = [ f'{i}|'.rjust(4) for i in range(100, -1, -10)]
-    return '\n'.join(bars)
+    divider =str("-" * width).rjust(width + 4)
+    bars.append(divider)
+    cat_names = [cat.name for cat in categories]
+    longest_name = max(cat_names, key = len)
+    names_cols = [[name[i] if i < len(name) else ' ' for name in cat_names] for i in range(len(longest_name))]
+    names_lines = [ '  '.join(line).rjust(width + 2) for line in names_cols]
+    # print("name lines: ", names_lines)
+    bars.extend(names_lines)
+    # names_list 
+    res = '\n'.join(bars)
+    print(res)
+    return res
